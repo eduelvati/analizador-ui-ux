@@ -11,6 +11,7 @@ import { Sparkles } from "lucide-react";
 import Image from "next/image";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export default function Home() {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -37,24 +38,45 @@ export default function Home() {
 
   const handleAnalyze = async () => {
     if (!imageFile) {
-      alert("Por favor, capture uma imagem da sua tela primeiro.");
+      toast.error("Por favor, capture uma imagem da sua tela primeiro.");
       return;
     }
     
     const apiKey = aiProvider === 'openai' ? openAIKey : googleAIKey;
     if (!apiKey) {
-      alert(`Por favor, insira sua chave de API da ${aiProvider === 'openai' ? 'OpenAI' : 'Google'}.`);
+      toast.error(`Por favor, insira sua chave de API da ${aiProvider === 'openai' ? 'OpenAI' : 'Google'}.`);
       return;
     }
 
     setIsLoading(true);
     setAnalysis(null);
 
-    // Placeholder for actual API call logic
-    setTimeout(() => {
-      setAnalysis(`Esta é uma análise de exemplo (usando ${aiProvider}) baseada na tela capturada. A integração com a API será feita a seguir.\n\nO protótipo parece bom, mas o contraste do botão principal poderia ser melhorado para aumentar a acessibilidade. Considere também aumentar o tamanho da fonte do cabeçalho para melhor legibilidade em dispositivos menores.`);
+    const formData = new FormData();
+    formData.append("image", imageFile);
+    formData.append("provider", aiProvider);
+    formData.append("apiKey", apiKey);
+
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Ocorreu um erro desconhecido.");
+      }
+
+      setAnalysis(result.analysis);
+
+    } catch (error: any) {
+      console.error("Falha ao analisar:", error);
+      toast.error(`Erro na análise: ${error.message}`);
+      setAnalysis(null);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const currentApiKey = aiProvider === 'openai' ? openAIKey : googleAIKey;
@@ -155,9 +177,19 @@ export default function Home() {
                 )}
                 {analysis && !isLoading && (
                   <div className="prose prose-sm dark:prose-invert max-w-none">
-                    {analysis.split('\n').map((paragraph, index) => (
-                      <p key={index}>{paragraph}</p>
-                    ))}
+                    {analysis.split('\n').map((paragraph, index) => {
+                      // Simple markdown-like rendering for bold text
+                      const parts = paragraph.split(/(\*\*.*?\*\*)/g);
+                      return (
+                        <p key={index}>
+                          {parts.map((part, i) => 
+                            part.startsWith('**') && part.endsWith('**') ? 
+                            <strong key={i}>{part.slice(2, -2)}</strong> : 
+                            part
+                          )}
+                        </p>
+                      );
+                    })}
                   </div>
                 )}
                 {!analysis && !isLoading && (
