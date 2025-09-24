@@ -12,10 +12,11 @@ import Image from "next/image";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { AnalysisCard, AnalysisItem } from "@/components/analysis-card";
 
 export default function Home() {
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [analysis, setAnalysis] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<AnalysisItem[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSharing, setIsSharing] = useState<boolean>(false);
   const [capturedImagePreview, setCapturedImagePreview] = useState<string | null>(null);
@@ -68,7 +69,16 @@ export default function Home() {
         throw new Error(result.error || "Ocorreu um erro desconhecido.");
       }
 
-      setAnalysis(result.analysis);
+      try {
+        // A IA pode retornar o JSON dentro de um bloco de código markdown, vamos limpá-lo.
+        const cleanedJsonString = result.analysis.replace(/```json\n|```/g, '').trim();
+        const parsedAnalysis = JSON.parse(cleanedJsonString);
+        setAnalysis(parsedAnalysis);
+      } catch (parseError) {
+        console.error("Falha ao processar a resposta da IA:", parseError);
+        toast.error("A resposta da IA não estava no formato esperado. Tente analisar novamente.");
+        setAnalysis(null);
+      }
 
     } catch (error: any) {
       console.error("Falha ao analisar:", error);
@@ -155,50 +165,60 @@ export default function Home() {
               </Button>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  Análise e Sugestões
-                </CardTitle>
-                <CardDescription>
-                  Aqui aparecerão as críticas e melhorias sugeridas pela IA.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoading && (
-                  <div className="space-y-4">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                )}
-                {analysis && !isLoading && (
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    {analysis.split('\n').map((paragraph, index) => {
-                      // Simple markdown-like rendering for bold text
-                      const parts = paragraph.split(/(\*\*.*?\*\*)/g);
-                      return (
-                        <p key={index}>
-                          {parts.map((part, i) => 
-                            part.startsWith('**') && part.endsWith('**') ? 
-                            <strong key={i}>{part.slice(2, -2)}</strong> : 
-                            part
-                          )}
-                        </p>
-                      );
-                    })}
-                  </div>
-                )}
-                {!analysis && !isLoading && (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    Aguardando análise...
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    Análise e Sugestões
+                  </CardTitle>
+                  <CardDescription>
+                    Aqui aparecerão as críticas e melhorias sugeridas pela IA.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+              
+              {isLoading && (
+                <div className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <Skeleton className="h-5 w-3/4" />
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <Skeleton className="h-5 w-4/5" />
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-2/3" />
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {analysis && !isLoading && (
+                <div className="space-y-4">
+                  {analysis.map((item, index) => (
+                    <AnalysisCard key={index} item={item} />
+                  ))}
+                </div>
+              )}
+
+              {!analysis && !isLoading && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      Aguardando análise...
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </div>
       </main>

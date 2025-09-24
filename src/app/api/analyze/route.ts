@@ -8,16 +8,36 @@ function bufferToBase64(buffer: Buffer, mimeType: string): string {
 }
 
 // O prompt que instrui a IA sobre como analisar a imagem
-const SYSTEM_PROMPT = `Você é um especialista em UX/UI e design de interfaces. Sua tarefa é analisar a imagem de um protótipo de aplicativo ou site. 
-Forneça uma crítica construtiva e detalhada, focando nos seguintes pontos:
-1.  **Primeiras Impressões:** Qual é a sua impressão geral da interface?
-2.  **Clareza e Usabilidade:** A interface é intuitiva? Os elementos são fáceis de entender e usar?
-3.  **Hierarquia Visual:** A informação está bem organizada? Os elementos mais importantes se destacam?
-4.  **Consistência:** O design é consistente em toda a tela (cores, fontes, espaçamento)?
-5.  **Acessibilidade:** O contraste das cores é adequado? Os textos são legíveis? Os alvos de clique são grandes o suficiente?
-6.  **Sugestões de Melhoria:** Ofereça sugestões claras e acionáveis para cada ponto problemático identificado.
+const SYSTEM_PROMPT = `Você é um especialista sênior em UX/UI. Sua tarefa é analisar a imagem de um protótipo e retornar suas descobertas como um array JSON.
 
-Formate sua resposta usando markdown para melhor legibilidade. Use títulos, listas e negrito para organizar a análise. A resposta deve ser em português do Brasil.`;
+**Formato de Saída Obrigatório:**
+Sua resposta DEVE ser um array JSON válido. Cada objeto no array representa um ponto de análise e deve conter os seguintes campos:
+- "category": (string) A categoria do problema. Deve ser estritamente "UI" ou "UX".
+- "issue": (string) Uma descrição clara e concisa do problema identificado.
+- "suggestion": (string) Uma sugestão prática e acionável para resolver o problema.
+- "reference": (string) Uma breve explicação do princípio de design ou heurística que fundamenta sua sugestão (ex: "Lei de Hick", "Contraste e Acessibilidade (WCAG)", "Consistência Visual").
+
+**Diretrizes:**
+- Identifique entre 3 a 5 dos problemas mais impactantes.
+- A resposta deve ser em português do Brasil.
+
+**Exemplo de Saída JSON:**
+[
+  {
+    "category": "UI",
+    "issue": "O contraste de cor entre o texto do botão e seu fundo é baixo, dificultando a leitura.",
+    "suggestion": "Aumente o contraste utilizando um branco mais puro (#FFFFFF) para o texto ou escurecendo o tom do fundo para atender às diretrizes WCAG AA.",
+    "reference": "Contraste e Acessibilidade (WCAG)"
+  },
+  {
+    "category": "UX",
+    "issue": "Não há um feedback visual claro quando o usuário clica no botão 'Salvar'.",
+    "suggestion": "Implemente um feedback imediato, como uma notificação de sucesso (toast) ou um ícone de carregamento no botão.",
+    "reference": "Feedback do Sistema (1ª Heurística de Nielsen)"
+  }
+]
+
+Analise a imagem fornecida e retorne APENAS o array JSON.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -55,7 +75,7 @@ export async function POST(req: NextRequest) {
             ],
           },
         ],
-        max_tokens: 1000,
+        max_tokens: 1500,
       });
       analysisText = response.choices[0].message.content;
 
@@ -83,7 +103,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error("Erro na API de análise:", error);
-    // Retorna uma mensagem de erro mais amigável para o cliente
     const errorMessage = error.response?.data?.error?.message || error.message || "Ocorreu um erro desconhecido.";
     return NextResponse.json({ error: `Erro ao processar a análise: ${errorMessage}` }, { status: 500 });
   }
