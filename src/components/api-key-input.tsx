@@ -9,22 +9,22 @@ import { toast } from "sonner";
 interface ApiKeyInputProps {
   value: string;
   onChange: (value: string) => void;
+  storageKey: string;
+  placeholder?: string;
 }
 
-const LOCAL_STORAGE_KEY = "openai_api_key";
-
-export function ApiKeyInput({ value, onChange }: ApiKeyInputProps) {
+export function ApiKeyInput({ value, onChange, storageKey, placeholder }: ApiKeyInputProps) {
   const [showKey, setShowKey] = useState(false);
 
   useEffect(() => {
-    const storedKey = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const storedKey = localStorage.getItem(storageKey);
     if (storedKey) {
       onChange(storedKey);
     }
-  }, [onChange]);
+  }, [onChange, storageKey]);
 
   const handleSaveKey = () => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, value);
+    localStorage.setItem(storageKey, value);
     toast.success("Chave de API salva no seu navegador!");
   };
 
@@ -33,7 +33,7 @@ export function ApiKeyInput({ value, onChange }: ApiKeyInputProps) {
       <div className="relative flex-grow">
         <Input
           type={showKey ? "text" : "password"}
-          placeholder="sk-..."
+          placeholder={placeholder || "sk-..."}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="pr-10"
