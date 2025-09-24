@@ -149,5 +149,6 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(circle at top, hsl(var(--muted)), hsl(var(--background)) 80%);
   }
 }

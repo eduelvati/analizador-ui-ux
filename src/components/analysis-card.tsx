@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Lightbulb, BookCheck, ChevronsUpDown, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export interface AnalysisItem {
   category: "UI" | "UX";
@@ -71,7 +72,13 @@ export function AnalysisCard({ item }: AnalysisCardProps) {
   };
 
   return (
-    <Card ref={cardRef}>
+    <Card
+      ref={cardRef}
+      className={cn(
+        "border-l-4",
+        item.category === "UI" ? "border-chart-1" : "border-chart-2"
+      )}
+    >
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
           <CardTitle className="text-base font-semibold flex-1">{item.issue}</CardTitle>

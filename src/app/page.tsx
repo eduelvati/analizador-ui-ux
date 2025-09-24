@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ScreenCapture } from "@/components/screen-capture";
 import { ApiKeyInput } from "@/components/api-key-input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles } from "lucide-react";
+import { Sparkles, FileQuestion } from "lucide-react";
 import Image from "next/image";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -94,114 +94,117 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-1 container mx-auto p-4 sm:p-8">
-        <div className="max-w-3xl mx-auto">
-          <header className="text-center mb-10">
-            <h1 className="text-4xl font-bold tracking-tight">Analisador de Protótipo com IA</h1>
-            <p className="text-muted-foreground mt-2">
-              Receba críticas e sugestões de melhoria de UX/UI para seu protótipo em 3 passos.
+        <div className="max-w-6xl mx-auto">
+          <header className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Analisador de Protótipo com IA</h1>
+            <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
+              Receba críticas e sugestões de melhoria de UX/UI para seu protótipo em 3 passos simples.
             </p>
           </header>
 
-          <div className="flex flex-col gap-8">
-            {/* --- PASSO 1: CAPTURAR --- */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Passo 1: Compartilhe e Capture</CardTitle>
-                <CardDescription>Inicie o compartilhamento e capture a tela do seu protótipo. A imagem não é salva em nenhum lugar.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScreenCapture onCapture={handleCapture} isSharing={isSharing} setIsSharing={setIsSharing} />
-              </CardContent>
-            </Card>
+          <div className="grid md:grid-cols-2 gap-8 items-start">
+            {/* --- COLUNA ESQUERDA: CONTROLES --- */}
+            <div className="flex flex-col gap-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Passo 1: Compartilhe e Capture</CardTitle>
+                  <CardDescription>Inicie o compartilhamento e capture a tela do seu protótipo. A imagem não é salva em nenhum lugar.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ScreenCapture onCapture={handleCapture} isSharing={isSharing} setIsSharing={setIsSharing} />
+                </CardContent>
+              </Card>
 
-            {/* --- PASSO 2: CONFIGURAR E ANALISAR (APARECE APÓS CAPTURA) --- */}
-            {imageFile && (
-              <>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Imagem Capturada</CardTitle>
-                    <CardDescription>Esta imagem será enviada para análise. Para mudar, capture outra tela.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Image
-                      src={capturedImagePreview!}
-                      alt="Tela capturada para análise"
-                      width={800}
-                      height={450}
-                      className="rounded-md object-contain w-full border"
-                    />
-                  </CardContent>
-                </Card>
+              {imageFile && (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Imagem Capturada</CardTitle>
+                      <CardDescription>Esta imagem será enviada para análise.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Image
+                        src={capturedImagePreview!}
+                        alt="Tela capturada para análise"
+                        width={800}
+                        height={450}
+                        className="rounded-md object-contain w-full border"
+                      />
+                    </CardContent>
+                  </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Passo 2: Configure sua Chave</CardTitle>
-                    <CardDescription>
-                      Escolha o provedor de IA e insira sua chave de API. Ela fica salva apenas no seu navegador.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <RadioGroup value={aiProvider} onValueChange={(value) => setAiProvider(value as 'openai' | 'google')} className="mb-4 flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="openai" id="r-openai" />
-                        <Label htmlFor="r-openai">OpenAI</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="google" id="r-google" />
-                        <Label htmlFor="r-google">Google</Label>
-                      </div>
-                    </RadioGroup>
-                    
-                    {aiProvider === 'openai' && (
-                      <ApiKeyInput value={openAIKey} onChange={setOpenAIKey} storageKey="openai_api_key" placeholder="sk-..." />
-                    )}
-                    {aiProvider === 'google' && (
-                      <ApiKeyInput value={googleAIKey} onChange={setGoogleAIKey} storageKey="google_api_key" placeholder="Chave da API do Google AI..." />
-                    )}
-                  </CardContent>
-                </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Passo 2: Configure sua Chave</CardTitle>
+                      <CardDescription>
+                        Escolha o provedor de IA e insira sua chave de API. Ela fica salva apenas no seu navegador.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <RadioGroup value={aiProvider} onValueChange={(value) => setAiProvider(value as 'openai' | 'google')} className="mb-4 flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="openai" id="r-openai" />
+                          <Label htmlFor="r-openai">OpenAI</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="google" id="r-google" />
+                          <Label htmlFor="r-google">Google</Label>
+                        </div>
+                      </RadioGroup>
+                      
+                      {aiProvider === 'openai' && (
+                        <ApiKeyInput value={openAIKey} onChange={setOpenAIKey} storageKey="openai_api_key" placeholder="sk-..." />
+                      )}
+                      {aiProvider === 'google' && (
+                        <ApiKeyInput value={googleAIKey} onChange={setGoogleAIKey} storageKey="google_api_key" placeholder="Chave da API do Google AI..." />
+                      )}
+                    </CardContent>
+                  </Card>
 
-                <Button onClick={handleAnalyze} disabled={isLoading || !currentApiKey} size="lg" className="w-full">
-                  {isLoading ? "Analisando..." : "Passo 3: Analisar Protótipo"}
-                </Button>
-              </>
-            )}
-
-            {/* --- PASSO 3: RESULTADOS (APARECE APÓS ANÁLISE) --- */}
-            <div className="space-y-6">
-              {(isLoading || analysis) && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-primary" />
-                      Análise e Sugestões
-                    </CardTitle>
-                    <CardDescription>
-                      Aqui estão as críticas e melhorias sugeridas pela IA.
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
+                  <Button onClick={handleAnalyze} disabled={isLoading || !currentApiKey} size="lg" className="w-full">
+                    {isLoading ? "Analisando..." : "Passo 3: Analisar Protótipo"}
+                  </Button>
+                </>
               )}
+            </div>
+
+            {/* --- COLUNA DIREITA: RESULTADOS --- */}
+            <div className="space-y-6 md:sticky top-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    Análise e Sugestões
+                  </CardTitle>
+                  <CardDescription>
+                    {analysis ? "Aqui estão as críticas e melhorias sugeridas." : "Os resultados da análise aparecerão aqui."}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
               
               {isLoading && (
                 <div className="space-y-4">
-                  <Card>
-                    <CardHeader><Skeleton className="h-5 w-3/4" /></CardHeader>
-                    <CardContent className="space-y-4"><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-1/2" /></CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader><Skeleton className="h-5 w-4/5" /></CardHeader>
-                    <CardContent className="space-y-4"><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-2/3" /></CardContent>
-                  </Card>
+                  <Card><CardContent className="p-4 space-y-2"><Skeleton className="h-5 w-3/4" /><Skeleton className="h-4 w-full" /></CardContent></Card>
+                  <Card><CardContent className="p-4 space-y-2"><Skeleton className="h-5 w-4/5" /><Skeleton className="h-4 w-2/3" /></CardContent></Card>
                 </div>
               )}
 
               {analysis && !isLoading && (
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-2">
                   {analysis.map((item, index) => (
                     <AnalysisCard key={index} item={item} />
                   ))}
                 </div>
+              )}
+
+              {!analysis && !isLoading && (
+                <Card className="flex items-center justify-center h-64 border-dashed">
+                  <CardContent className="text-center text-muted-foreground pt-6">
+                    <FileQuestion className="mx-auto h-12 w-12 mb-4" />
+                    <p className="font-medium">Aguardando análise</p>
+                    <p className="text-sm">Complete os passos ao lado para ver os resultados.</p>
+                  </CardContent>
+                </Card>
               )}
             </div>
           </div>
