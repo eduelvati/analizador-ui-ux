@@ -14,7 +14,7 @@ const SYSTEM_PROMPT = `Você é um especialista sênior em UX/UI. Sua tarefa é 
 Sua resposta DEVE ser um array JSON válido. Cada objeto no array representa um ponto de análise e deve conter os seguintes campos:
 - "category": (string) A categoria do problema. Deve ser estritamente "UI" ou "UX".
 - "issue": (string) Uma descrição clara e concisa do problema identificado.
-- "suggestion": (string) Uma sugestão prática e acionável para resolver o problema.
+- "suggestion": (string) Uma sugestão de melhoria extremamente detalhada e prática. Explique o 'porquê' da sugestão. Se aplicável, inclua exemplos de texto, sugestões de cores (com códigos hex), ou até mesmo um pequeno trecho de CSS para ilustrar a mudança. A sugestão deve ser rica o suficiente para que um designer ou desenvolvedor possa implementá-la diretamente. Use quebras de linha (\\n) para formatar a sugestão em parágrafos.
 - "reference": (string) Uma breve explicação do princípio de design ou heurística que fundamenta sua sugestão (ex: "Lei de Hick", "Contraste e Acessibilidade (WCAG)", "Consistência Visual").
 
 **Diretrizes:**
@@ -26,13 +26,13 @@ Sua resposta DEVE ser um array JSON válido. Cada objeto no array representa um 
   {
     "category": "UI",
     "issue": "O contraste de cor entre o texto do botão e seu fundo é baixo, dificultando a leitura.",
-    "suggestion": "Aumente o contraste utilizando um branco mais puro (#FFFFFF) para o texto ou escurecendo o tom do fundo para atender às diretrizes WCAG AA.",
+    "suggestion": "Para melhorar a acessibilidade e a legibilidade, é crucial aumentar o contraste. Recomendo alterar a cor do texto para um branco puro (#FFFFFF). Adicionalmente, escurecer o fundo do botão para um tom de azul mais saturado, como #3B82F6, garantiria uma taxa de contraste que atende ao nível AA das diretrizes WCAG.\\n\\nExemplo de CSS:\\n.button {\\n  background-color: #3B82F6;\\n  color: #FFFFFF;\\n}",
     "reference": "Contraste e Acessibilidade (WCAG)"
   },
   {
     "category": "UX",
     "issue": "Não há um feedback visual claro quando o usuário clica no botão 'Salvar'.",
-    "suggestion": "Implemente um feedback imediato, como uma notificação de sucesso (toast) ou um ícone de carregamento no botão.",
+    "suggestion": "O usuário precisa saber que sua ação foi registrada. Ao clicar, o botão deve mudar de estado para indicar processamento. Desabilite o botão e mostre um ícone de carregamento (spinner) dentro dele. Após a conclusão, exiba uma notificação de sucesso (toast) com a mensagem 'Dados salvos com sucesso!' e retorne o botão ao seu estado original.",
     "reference": "Feedback do Sistema (1ª Heurística de Nielsen)"
   }
 ]
