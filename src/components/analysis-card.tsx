@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef } from "react";
+import html2canvas from "html2canvas";
 import {
   Card,
   CardContent,
@@ -28,27 +30,44 @@ interface AnalysisCardProps {
 }
 
 export function AnalysisCard({ item }: AnalysisCardProps) {
-  const handleCopy = () => {
-    const textToCopy = `
-**Categoria:** ${item.category}
-**Problema Identificado:** ${item.issue}
+  const cardRef = useRef<HTMLDivElement>(null);
 
-**Sugestão de Melhoria:**
-${item.suggestion.replace(/\\n/g, '\n')}
+  const handleCopyImage = async () => {
+    if (!cardRef.current) return;
 
-**Princípio Aplicado:** ${item.reference}
-    `.trim();
+    const copyPromise = new Promise<void>(async (resolve, reject) => {
+      try {
+        const canvas = await html2canvas(cardRef.current, {
+          backgroundColor: null, // Mantém o fundo transparente se houver
+          scale: 2, // Aumenta a resolução para melhor qualidade
+        });
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            navigator.clipboard.write([
+              new ClipboardItem({
+                'image/png': blob
+              })
+            ]).then(resolve).catch(reject);
+          } else {
+            reject(new Error("Não foi possível converter o card para imagem."));
+          }
+        }, 'image/png');
 
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      toast.success("Análise copiada para a área de transferência!");
-    }).catch(err => {
-      console.error("Falha ao copiar texto: ", err);
-      toast.error("Não foi possível copiar a análise.");
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    toast.promise(copyPromise, {
+      loading: 'Gerando imagem do card...',
+      success: 'Card copiado como imagem!',
+      error: 'Falha ao copiar a imagem do card.',
     });
   };
 
   return (
-    <Card>
+    <Card ref={cardRef}>
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
           <CardTitle className="text-base font-semibold flex-1">{item.issue}</CardTitle>
@@ -56,9 +75,9 @@ ${item.suggestion.replace(/\\n/g, '\n')}
             <Badge variant={item.category === "UI" ? "default" : "secondary"}>
               {item.category}
             </Badge>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopy}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopyImage}>
               <Copy className="h-4 w-4" />
-              <span className="sr-only">Copiar análise</span>
+              <span className="sr-only">Copiar como imagem</span>
             </Button>
           </div>
         </div>
