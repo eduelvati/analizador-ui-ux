@@ -13,7 +13,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Lightbulb, BookCheck, ChevronsUpDown } from "lucide-react";
+import { Lightbulb, BookCheck, ChevronsUpDown, Copy } from "lucide-react";
+import { toast } from "sonner";
 
 export interface AnalysisItem {
   category: "UI" | "UX";
@@ -27,14 +28,39 @@ interface AnalysisCardProps {
 }
 
 export function AnalysisCard({ item }: AnalysisCardProps) {
+  const handleCopy = () => {
+    const textToCopy = `
+**Categoria:** ${item.category}
+**Problema Identificado:** ${item.issue}
+
+**Sugestão de Melhoria:**
+${item.suggestion.replace(/\\n/g, '\n')}
+
+**Princípio Aplicado:** ${item.reference}
+    `.trim();
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      toast.success("Análise copiada para a área de transferência!");
+    }).catch(err => {
+      console.error("Falha ao copiar texto: ", err);
+      toast.error("Não foi possível copiar a análise.");
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
-          <CardTitle className="text-base font-semibold">{item.issue}</CardTitle>
-          <Badge variant={item.category === "UI" ? "default" : "secondary"} className="flex-shrink-0">
-            {item.category}
-          </Badge>
+          <CardTitle className="text-base font-semibold flex-1">{item.issue}</CardTitle>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Badge variant={item.category === "UI" ? "default" : "secondary"}>
+              {item.category}
+            </Badge>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopy}>
+              <Copy className="h-4 w-4" />
+              <span className="sr-only">Copiar análise</span>
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <Collapsible>
