@@ -32,12 +32,16 @@ interface AnalysisCardProps {
 export function AnalysisCard({ item }: AnalysisCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const handleCopyImage = async () => {
-    if (!cardRef.current) return;
+  const handleCopyImage = () => {
+    const elementToCapture = cardRef.current;
+    if (!elementToCapture) {
+      toast.error("Não foi possível encontrar o elemento do card para capturar.");
+      return;
+    }
 
     const copyPromise = new Promise<void>(async (resolve, reject) => {
       try {
-        const canvas = await html2canvas(cardRef.current, {
+        const canvas = await html2canvas(elementToCapture, {
           backgroundColor: null, // Mantém o fundo transparente se houver
           scale: 2, // Aumenta a resolução para melhor qualidade
         });
