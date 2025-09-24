@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { MonitorPlay, Camera, MonitorStop } from "lucide-react";
 import { toast } from "sonner";
@@ -15,15 +15,19 @@ export function ScreenCapture({ onCapture, isSharing, setIsSharing }: ScreenCapt
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
 
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
   const startScreenShare = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
         audio: false,
       });
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
+      
       setStream(mediaStream);
       setIsSharing(true);
       onCapture(null); // Limpa a captura anterior
@@ -50,7 +54,7 @@ export function ScreenCapture({ onCapture, isSharing, setIsSharing }: ScreenCapt
   };
 
   const captureScreenshot = () => {
-    if (videoRef.current) {
+    if (videoRef.current && videoRef.current.videoWidth > 0) {
       const canvas = document.createElement("canvas");
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
@@ -65,6 +69,8 @@ export function ScreenCapture({ onCapture, isSharing, setIsSharing }: ScreenCapt
           }
         }, "image/png");
       }
+    } else {
+      toast.error("A visualização da tela ainda não está pronta. Tente novamente em um instante.");
     }
   };
 
