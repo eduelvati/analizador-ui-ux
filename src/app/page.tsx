@@ -179,7 +179,7 @@ export default function Home() {
           </div>
         </div>
       </main>
-      <MadeWithDyad />
+     Made for DevEduu
     </div>
   );
 }
