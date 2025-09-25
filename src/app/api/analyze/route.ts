@@ -18,7 +18,7 @@ Baseie sua análise nos seguintes princípios:
 4.  **Acessibilidade (WCAG):** Verifique o contraste de cores e a clareza da tipografia.
 
 **FORMATO DE SAÍDA OBRIGATÓRIO:**
-Sua resposta DEVE ser um array JSON contendo de 3 a 5 objetos. Não inclua nenhum texto ou formatação fora do array JSON (como \`\`\`json).
+Sua resposta DEVE ser um objeto JSON com uma única chave "analysis". O valor dessa chave deve ser um array JSON contendo de 3 a 5 objetos. Não inclua nenhum texto ou formatação fora do objeto JSON (como \`\`\`json).
 
 Cada objeto no array deve ter a seguinte estrutura:
 {
@@ -34,22 +34,24 @@ Cada objeto no array deve ter a seguinte estrutura:
 - **Foco em UI e UX:** Classifique cada ponto como 'UI' (relacionado à aparência visual e layout) ou 'UX' (relacionado à experiência do usuário e usabilidade).
 
 **EXEMPLO DE SAÍDA:**
-[
-  {
-    "category": "UI",
-    "issue": "O contraste entre o texto do botão principal e seu fundo é baixo, dificultando a leitura.",
-    "suggestion": "Aumente o contraste para atender às diretrizes WCAG AA (pelo menos 4.5:1). Por exemplo, use um texto mais escuro ou um fundo mais claro para o botão.",
-    "reference": "WCAG 2.1 - Contraste Mínimo"
-  },
-  {
-    "category": "UX",
-    "issue": "A falta de um estado 'vazio' claro na lista de itens pode confundir novos usuários.",
-    "suggestion": "Implemente uma mensagem de estado vazio com um ícone e um texto explicativo, como 'Nenhum item adicionado ainda. Clique em + para começar'.",
-    "reference": "Heurística de Nielsen: Ajuda e Documentação"
-  }
-]
+{
+  "analysis": [
+    {
+      "category": "UI",
+      "issue": "O contraste entre o texto do botão principal e seu fundo é baixo, dificultando a leitura.",
+      "suggestion": "Aumente o contraste para atender às diretrizes WCAG AA (pelo menos 4.5:1). Por exemplo, use um texto mais escuro ou um fundo mais claro para o botão.",
+      "reference": "WCAG 2.1 - Contraste Mínimo"
+    },
+    {
+      "category": "UX",
+      "issue": "A falta de um estado 'vazio' claro na lista de itens pode confundir novos usuários.",
+      "suggestion": "Implemente uma mensagem de estado vazio com um ícone e um texto explicativo, como 'Nenhum item adicionado ainda. Clique em + para começar'.",
+      "reference": "Heurística de Nielsen: Ajuda e Documentação"
+    }
+  ]
+}
 
-Analise a imagem fornecida e retorne APENAS o array JSON.`;
+Analise a imagem fornecida e retorne APENAS o objeto JSON.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -118,24 +120,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Não foi possível obter a análise da IA." }, { status: 500 });
     }
 
-    // A resposta da OpenAI com response_format: "json_object" já é um JSON string.
-    // Para o Google, ainda pode vir com markdown.
     const cleanedJsonString = analysisText.replace(/```json\n|```/g, '').trim();
 
-    // Se a resposta da OpenAI for um objeto JSON com uma chave (ex: {"analysis": [...]}), extraímos o array.
     try {
       const parsed = JSON.parse(cleanedJsonString);
-      if (typeof parsed === 'object' && !Array.isArray(parsed)) {
-        const keys = Object.keys(parsed);
-        if (keys.length === 1 && Array.isArray(parsed[keys[0]])) {
-           return NextResponse.json({ analysis: JSON.stringify(parsed[keys[0]]) });
-        }
-      }
-    } catch (e) {
-      // Ignora o erro se não for um JSON, e continua para a resposta normal
-    }
+      
+      // A IA pode retornar um array diretamente (menos provável com o novo prompt) ou um objeto com a chave "analysis"
+      const analysisArray = Array.isArray(parsed) ? parsed : parsed.analysis;
 
-    return NextResponse.json({ analysis: cleanedJsonString });
+      if (!Array.isArray(analysisArray)) {
+        console.error("A resposta da IA não continha um array de análise válido. Resposta:", cleanedJsonString);
+        throw new Error("A resposta da IA não continha um array de análise válido.");
+      }
+
+      return NextResponse.json({ analysis: JSON.stringify(analysisArray) });
+
+    } catch (error) {
+      console.error("Erro ao processar JSON da IA:", error, "String recebida:", cleanedJsonString);
+      return NextResponse.json({ error: "A resposta da IA não estava no formato JSON esperado." }, { status: 500 });
+    }
 
   } catch (error: any) {
     console.error("Erro na API de análise:", error);
