@@ -5,14 +5,12 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScreenCapture } from "@/components/screen-capture";
-import { ApiKeyInput } from "@/components/api-key-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles, FileQuestion } from "lucide-react";
 import Image from "next/image";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { AnalysisCard, AnalysisItem } from "@/components/analysis-card";
+import { ApiKeyDialog } from "@/components/api-key-dialog";
 
 export default function Home() {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -20,10 +18,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSharing, setIsSharing] = useState<boolean>(false);
   const [capturedImagePreview, setCapturedImagePreview] = useState<string | null>(null);
-
-  const [aiProvider, setAiProvider] = useState<'openai' | 'google'>('openai');
-  const [openAIKey, setOpenAIKey] = useState<string>("");
-  const [googleAIKey, setGoogleAIKey] = useState<string>("");
 
   const handleCapture = (file: File | null) => {
     setImageFile(file);
@@ -44,9 +38,11 @@ export default function Home() {
       return;
     }
     
-    const apiKey = aiProvider === 'openai' ? openAIKey : googleAIKey;
+    const aiProvider = localStorage.getItem('ai_provider') || 'openai';
+    const apiKey = localStorage.getItem(aiProvider === 'openai' ? 'openai_api_key' : 'google_api_key');
+
     if (!apiKey) {
-      toast.error(`Por favor, insira sua chave de API da ${aiProvider === 'openai' ? 'OpenAI' : 'Google'}.`);
+      toast.error(`Por favor, configure sua chave de API da ${aiProvider === 'openai' ? 'OpenAI' : 'Google'} nas configurações.`);
       return;
     }
 
@@ -89,16 +85,17 @@ export default function Home() {
     }
   };
 
-  const currentApiKey = aiProvider === 'openai' ? openAIKey : googleAIKey;
-
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-1 container mx-auto p-4 sm:p-8">
         <div className="max-w-6xl mx-auto">
-          <header className="text-center mb-12">
+          <header className="text-center mb-12 relative">
+            <div className="absolute top-0 right-0">
+              <ApiKeyDialog />
+            </div>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Analisador de Protótipo com IA</h1>
             <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
-              Receba críticas e sugestões de melhoria de UX/UI para seu protótipo em 3 passos simples.
+              Receba críticas e sugestões de melhoria de UX/UI para seu protótipo em 2 passos simples.
             </p>
           </header>
 
@@ -133,36 +130,8 @@ export default function Home() {
                     </CardContent>
                   </Card>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Passo 2: Configure sua Chave</CardTitle>
-                      <CardDescription>
-                        Escolha o provedor de IA e insira sua chave de API. Ela fica salva apenas no seu navegador.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <RadioGroup value={aiProvider} onValueChange={(value) => setAiProvider(value as 'openai' | 'google')} className="mb-4 flex items-center space-x-4">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="openai" id="r-openai" />
-                          <Label htmlFor="r-openai">OpenAI</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="google" id="r-google" />
-                          <Label htmlFor="r-google">Google</Label>
-                        </div>
-                      </RadioGroup>
-                      
-                      {aiProvider === 'openai' && (
-                        <ApiKeyInput value={openAIKey} onChange={setOpenAIKey} storageKey="openai_api_key" placeholder="sk-..." />
-                      )}
-                      {aiProvider === 'google' && (
-                        <ApiKeyInput value={googleAIKey} onChange={setGoogleAIKey} storageKey="google_api_key" placeholder="Chave da API do Google AI..." />
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  <Button onClick={handleAnalyze} disabled={isLoading || !currentApiKey} size="lg" className="w-full">
-                    {isLoading ? "Analisando..." : "Passo 3: Analisar Protótipo"}
+                  <Button onClick={handleAnalyze} disabled={isLoading} size="lg" className="w-full">
+                    {isLoading ? "Analisando..." : "Passo 2: Analisar Protótipo"}
                   </Button>
                 </>
               )}
