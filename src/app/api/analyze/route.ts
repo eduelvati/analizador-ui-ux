@@ -8,7 +8,7 @@ function bufferToBase64(buffer: Buffer, mimeType: string): string {
 }
 
 // O prompt base que instrui a IA sobre como analisar a imagem
-const ENHANCED_SYSTEM_PROMPT = `Você é um especialista sênior em Design de Produto e UX/UI com 10+ anos de experiência, especializado em Design Systems, Acessibilidade (WCAG 2.1 AA/AAA) e Metodologias Ágeis. Sua expertise abrange desde Research até implementação técnica.
+const BASE_SYSTEM_PROMPT = `Você é um especialista sênior em Design de Produto e UX/UI com 10+ anos de experiência, especializado em Design Systems, Acessibilidade (WCAG 2.1 AA/AAA) e Metodologias Ágeis. Sua expertise abrange desde Research até implementação técnica.
 
 **CONTEXTO DE ANÁLISE:**
 Analise a imagem considerando:
