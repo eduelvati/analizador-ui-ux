@@ -11,6 +11,8 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { AnalysisCard, AnalysisItem } from "@/components/analysis-card";
 import { ApiKeyDialog } from "@/components/api-key-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export default function Home() {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -18,6 +20,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSharing, setIsSharing] = useState<boolean>(false);
   const [capturedImagePreview, setCapturedImagePreview] = useState<string | null>(null);
+  const [contextPrompt, setContextPrompt] = useState<string>("");
 
   const handleCapture = (file: File | null) => {
     setImageFile(file);
@@ -53,6 +56,7 @@ export default function Home() {
     formData.append("image", imageFile);
     formData.append("provider", aiProvider);
     formData.append("apiKey", apiKey);
+    formData.append("context", contextPrompt);
 
     try {
       const response = await fetch("/api/analyze", {
@@ -95,7 +99,7 @@ export default function Home() {
             </div>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Analisador de Protótipo com IA</h1>
             <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
-              Receba críticas e sugestões de melhoria de UX/UI para seu protótipo em 2 passos simples.
+              Receba críticas e sugestões de melhoria de UX/UI para seu protótipo.
             </p>
           </header>
 
@@ -117,7 +121,6 @@ export default function Home() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Imagem Capturada</CardTitle>
-                      <CardDescription>Esta imagem será enviada para análise.</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Image
@@ -130,8 +133,25 @@ export default function Home() {
                     </CardContent>
                   </Card>
 
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Passo 2: Adicione Contexto (Opcional)</CardTitle>
+                      <CardDescription>
+                        Descreva o objetivo da tela ou o fluxo do usuário para uma análise mais precisa.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Textarea
+                        placeholder="Ex: 'Esta é a tela de checkout, o usuário está prestes a finalizar a compra.'"
+                        value={contextPrompt}
+                        onChange={(e) => setContextPrompt(e.target.value)}
+                        rows={3}
+                      />
+                    </CardContent>
+                  </Card>
+
                   <Button onClick={handleAnalyze} disabled={isLoading} size="lg" className="w-full">
-                    {isLoading ? "Analisando..." : "Passo 2: Analisar Protótipo"}
+                    {isLoading ? "Analisando..." : "Analisar Protótipo"}
                   </Button>
                 </>
               )}

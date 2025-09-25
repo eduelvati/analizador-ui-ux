@@ -7,8 +7,8 @@ function bufferToBase64(buffer: Buffer, mimeType: string): string {
   return `data:${mimeType};base64,${buffer.toString("base64")}`;
 }
 
-// O prompt que instrui a IA sobre como analisar a imagem
-const SYSTEM_PROMPT = `Você é um especialista sênior em Design de Produto e UX/UI, com um olhar crítico e detalhista. Sua tarefa é analisar a imagem de um protótipo e fornecer uma crítica construtiva e acionável, retornando suas descobertas como um array JSON.
+// O prompt base que instrui a IA sobre como analisar a imagem
+const BASE_SYSTEM_PROMPT = `Você é um especialista sênior em Design de Produto e UX/UI, com um olhar crítico e detalhista. Sua tarefa é analisar a imagem de um protótipo e fornecer uma crítica construtiva e acionável, retornando suas descobertas como um array JSON.
 
 **Formato de Saída Obrigatório:**
 Sua resposta DEVE ser um array JSON válido. Cada objeto no array representa um ponto de análise e deve conter os seguintes campos:
@@ -52,9 +52,15 @@ export async function POST(req: NextRequest) {
     const imageFile = formData.get("image") as File | null;
     const provider = formData.get("provider") as "openai" | "google";
     const apiKey = formData.get("apiKey") as string;
+    const context = formData.get("context") as string | null;
 
     if (!imageFile || !provider || !apiKey) {
       return NextResponse.json({ error: "Faltando parâmetros necessários." }, { status: 400 });
+    }
+
+    let finalSystemPrompt = BASE_SYSTEM_PROMPT;
+    if (context && context.trim() !== "") {
+      finalSystemPrompt = `**Contexto Fornecido pelo Usuário:**\n"${context}"\n\nCom base no contexto acima, analise a imagem a seguir, seguindo as instruções abaixo.\n\n---\n\n${BASE_SYSTEM_PROMPT}`;
     }
 
     const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
@@ -72,7 +78,7 @@ export async function POST(req: NextRequest) {
           {
             role: "user",
             content: [
-              { type: "text", text: SYSTEM_PROMPT },
+              { type: "text", text: finalSystemPrompt },
               {
                 type: "image_url",
                 image_url: {
@@ -82,7 +88,7 @@ export async function POST(req: NextRequest) {
             ],
           },
         ],
-        max_tokens: 2000, // Aumentado para permitir respostas mais detalhadas
+        max_tokens: 2000,
       });
       analysisText = response.choices[0].message.content;
 
@@ -97,7 +103,7 @@ export async function POST(req: NextRequest) {
         },
       };
 
-      const result = await model.generateContent([SYSTEM_PROMPT, imagePart]);
+      const result = await model.generateContent([finalSystemPrompt, imagePart]);
       const response = result.response;
       analysisText = response.text();
     }
