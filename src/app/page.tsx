@@ -179,7 +179,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-     Made for DevEduu
     </div>
   );
 }
