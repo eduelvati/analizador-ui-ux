@@ -71,11 +71,11 @@ export default function Home() {
       }
 
       try {
-        const cleanedJsonString = result.analysis.replace(/```json\n|```/g, '').trim();
-        const parsedAnalysis = JSON.parse(cleanedJsonString);
+        // A resposta da API já deve ser um JSON string limpo
+        const parsedAnalysis = JSON.parse(result.analysis);
         setAnalysis(parsedAnalysis);
       } catch (parseError) {
-        console.error("Falha ao processar a resposta da IA:", parseError);
+        console.error("Falha ao processar a resposta da IA:", parseError, "Resposta recebida:", result.analysis);
         toast.error("A resposta da IA não estava no formato esperado. Tente analisar novamente.");
         setAnalysis(null);
       }
