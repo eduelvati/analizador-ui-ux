@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef } from "react";
-import html2canvas from "html2canvas";
 import {
   Card,
   CardContent,
@@ -33,12 +32,15 @@ interface AnalysisCardProps {
 export function AnalysisCard({ item }: AnalysisCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const handleCopyImage = () => {
+  const handleCopyImage = async () => {
     const elementToCapture = cardRef.current;
     if (!elementToCapture) {
       toast.error("Não foi possível encontrar o elemento do card para capturar.");
       return;
     }
+
+    // Dynamically import the library only when needed
+    const html2canvas = (await import("html2canvas")).default;
 
     const copyPromise = new Promise<void>(async (resolve, reject) => {
       try {
